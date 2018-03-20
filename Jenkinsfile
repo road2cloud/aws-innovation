@@ -17,7 +17,7 @@ pipeline {
           }
         }
 
-        if (ACTION == 'apply') {
+        if (config.ACTION == 'apply') {
           stage ('Configure Bastion') {
             steps {
               wrap([$class: 'AnsiColorBuildWrapper', colorMapName: "xterm"]) {
