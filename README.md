@@ -9,6 +9,8 @@ ansible-playbook playbook.yml --extra-vars "project=aad"
 
 ./terraform destroy -var-file=secrets.tfvars -auto-approve  
 
+MANDATORY FOR ANSIBLE TO WORK:
+RUN: ssh-add /path/to/pem/file
 
 TEST :
 ssh aad-user@BASTION_IP
