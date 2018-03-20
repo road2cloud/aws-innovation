@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    options {
-      disableConcurrentBuilds(),
-      buildDiscarder(logRotator(numToKeepStr: '1'))
-    }
-
     parameters {
       string(name: 'PROJECT', defaultValue: '', description: 'Name of the project for which the EC2 instance will be created'),
       file(name: 'PEM_FILE')
