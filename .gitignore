@@ -4,3 +4,10 @@
 
 # Module directory
 .terraform/
+
+secrets.tfvars
+*.pem
+
+*.retry
+inventory
+terraform
