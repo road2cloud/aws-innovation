@@ -22,6 +22,7 @@ pipeline {
             wrap([$class: 'AnsiColorBuildWrapper', colorMapName: "xterm"]) {
               dir ('ansible') {
                 sh 'mv temp.txt MyNVirginiaKey.pem'
+                sh 'chmod 600 MyNVirginiaKey.pem'
                 sh 'ansible-playbook playbook.yml --extra-vars "project=${PROJECT}"'
               }
             }
