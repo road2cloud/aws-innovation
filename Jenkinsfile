@@ -8,6 +8,7 @@ pipeline {
         stage ('Build Infrastructure') {
           steps {
             wrap([$class: 'AnsiColorBuildWrapper', colorMapName: "xterm"]) {
+              sh 'ls -ltra'
               sh 'mv PEM_FILE ansible/MyNVirginiaKey.pem'
               sh '/Users/dimeh/Documents/workspace/pic/terraform/terraform init'
               sh "/Users/dimeh/Documents/workspace/pic/terraform/terraform apply -var 'access_key=${ACCESS_KEY}' -var 'secret_key=${SECRET_KEY}' -var 'aws_key_name=MyNVirginiaKey' -var 'project=${PROJECT}' -auto-approve"
