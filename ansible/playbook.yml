@@ -1,0 +1,48 @@
+- name: Configure Bastion
+  hosts: all
+  gather_facts: False
+  remote_user: ec2-user
+  become: true
+  vars:
+    user_password: "{{ project }}pwd"
+  tasks:
+    - name: Wait for SSH to come up
+      wait_for:
+        host: "{{ inventory_hostname }}"
+        port: 22
+        delay: 30
+        timeout: 320
+        state: started
+
+    - name: Change SSH configuration
+      copy:
+        src: "files/sshd_config"
+        dest: "/etc/ssh"
+        owner: root
+        group: root
+        mode: 0644
+      register: sshdConfig
+
+    - name: Reload sshd
+      command: "service sshd reload"
+      when: sshdConfig.changed
+
+    - name: Create aws group
+      group:
+        name: aws
+        state: present
+
+    - name: Create user
+      user:
+        name: "{{ project }}-user"
+        password: "{{ user_password | password_hash('sha512') }}"
+        shell: "/bin/bash"
+        group: aws
+
+    - name: Deploy Key
+      copy:
+        src: "{{ project }}-keypair.pem"
+        dest: "/home/{{ project }}-user"
+        owner: "{{ project }}-user"
+        group: aws
+        mode: 0600
