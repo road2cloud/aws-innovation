@@ -1,13 +1,15 @@
 pipeline {
     agent any
 
-    properties([
+    options {
       disableConcurrentBuilds(),
-      parameters([
-        string(name: 'PROJECT', defaultValue: '', description: 'Name of the project for which the EC2 instance will be created'),
-        file(name: 'PEM_FILE')
-        ])
-      ])
+      buildDiscarder(logRotator(numToKeepStr: '1'))
+    }
+
+    parameters {
+      string(name: 'PROJECT', defaultValue: '', description: 'Name of the project for which the EC2 instance will be created'),
+      file(name: 'PEM_FILE')
+    }
 
     //def inputFile == input message: 'Upload File', parameters: [file(name: 'MyNVirginiaKey.pem')]
     //writeFile(file: 'MyNVirginiaKey.pem', text: inputFile.readToString())
