@@ -22,7 +22,7 @@ pipeline {
           }
           steps {
             wrap([$class: 'AnsiColorBuildWrapper', colorMapName: "xterm"]) {
-              // sh '/Users/dimeh/Documents/workspace/pic/terraform/terraform output bastion > ansible/inventory'
+              sh '/Users/dimeh/Documents/workspace/pic/terraform/terraform output bastion > ansible/inventory'
 
               dir ('ansible') {
                 // Remove since it was added to user .ssh
