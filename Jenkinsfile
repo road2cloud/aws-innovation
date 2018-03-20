@@ -11,8 +11,6 @@ pipeline {
               // TODO: TO BE REMOVED
               sh '/Users/dimeh/Documents/workspace/pic/terraform/terraform init'
               sh "/Users/dimeh/Documents/workspace/pic/terraform/terraform ${ACTION} -var 'access_key=${ACCESS_KEY}' -var 'secret_key=${SECRET_KEY}' -var 'aws_key_name=MyNVirginiaKey' -var 'project=${PROJECT}' -auto-approve"
-
-              sh '/Users/dimeh/Documents/workspace/pic/terraform/terraform output bastion > ansible/inventory'
             }
           }
         }
@@ -23,9 +21,13 @@ pipeline {
           }
           steps {
             wrap([$class: 'AnsiColorBuildWrapper', colorMapName: "xterm"]) {
+              sh '/Users/dimeh/Documents/workspace/pic/terraform/terraform output bastion > ansible/inventory'
+
               dir ('ansible') {
                 sh 'mv MyNVirginiaKey.pem MyNVirginiaKey.pem'
                 sh 'chmod 600 MyNVirginiaKey.pem'
+                sh 'ls -ltr'
+                sh 'cat inventory'
 
                 ansiblePlaybook(
                   playbook: 'playbook.yml',
