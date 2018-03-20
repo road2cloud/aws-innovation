@@ -1,7 +1,7 @@
 pipeline {
     agent any
 
-    properties([
+    options([
       disableConcurrentBuilds(),
       parameters([
         string(name: 'PROJECT', defaultValue: '', description: 'Name of the project for which the EC2 instance will be created'),
@@ -11,12 +11,12 @@ pipeline {
 
     //def inputFile == input message: 'Upload File', parameters: [file(name: 'MyNVirginiaKey.pem')]
     //writeFile(file: 'MyNVirginiaKey.pem', text: inputFile.readToString())
-    sh 'mv PEM_FILE ansible/MyNVirginiaKey.pem'
 
     stages {
         stage ('Build Infrastructure') {
           steps {
             wrap([$class: 'AnsiColorBuildWrapper', colorMapName: "xterm"]) {
+              sh 'mv ${PEM_FILE} ansible/MyNVirginiaKey.pem'
               sh '/Users/dimeh/Documents/workspace/pic/terraform/terraform init'
               sh "/Users/dimeh/Documents/workspace/pic/terraform/terraform apply -var 'access_key=${ACCESS_KEY}' -var 'secret_key=${SECRET_KEY}' -var 'aws_key_name=MyNVirginiaKey' -var 'project=${PROJECT}' -auto-approve"
 
