@@ -137,10 +137,10 @@ resource "aws_instance" "bastion" {
     }
 }
 
-/*resource "aws_eip" "bastion-ip" {
+resource "aws_eip" "bastion-ip" {
     instance = "${aws_instance.bastion.id}"
     vpc = true
-}*/
+}
 
 resource "aws_security_group" "caas-sg" {
     name = "caas_instances"
