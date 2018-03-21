@@ -7,5 +7,5 @@ output "caas-sg_id" {
 }
 
 output "bastion_ip" {
-  value = "${aws_eip.bastion-ip.public_ip}"
+  value = "${aws_instance.bastion.public_ip}"
 }
