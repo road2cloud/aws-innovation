@@ -1,7 +1,6 @@
 variable "caas_sg" {}
 variable "caas_subnet_id" {}
 variable "project" {}
-variable "numOfInstances" {}
 
 resource "tls_private_key" "default" {
   algorithm = "RSA"
@@ -20,7 +19,6 @@ resource "local_file" "private_key_pem" {
 }
 
 resource "aws_instance" "ec2" {
-    count = "${var.numOfInstances}"
     ami = "ami-1853ac65"
     availability_zone = "us-east-1a"
     instance_type = "t2.micro"
@@ -46,5 +44,5 @@ resource "aws_ebs_volume" "ebs_ssd" {
 resource "aws_volume_attachment" "ebs_ssd_att" {
   device_name = "/dev/sdh"
   volume_id = "${aws_ebs_volume.ebs_ssd.id}"
-  instance_id = "${element(aws_instance.ec2.*.id, 0)}"
+  instance_id = "${aws_instance.ec2.id}"
 }

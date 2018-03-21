@@ -3,5 +3,5 @@ output "bastion" {
 }
 
 output "ec2-private-ip" {
-  value = "${module.caas_ec2.instance_private_ips}"
+  value = "${module.caas_ec2.instance_private_ip}"
 }

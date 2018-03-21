@@ -1,4 +1,4 @@
 
-output "instance_private_ips" {
-  value = "Instances: ${element(aws_instance.ec2.*.private_ip, 0)}"
+output "instance_private_ip" {
+  value = "${aws_instance.ec2.private_ip}"
 }
