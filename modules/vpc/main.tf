@@ -1,10 +1,15 @@
-variable "aws_key_name" {}
+/*********************
+  AWS VPC
+*********************/
 
 resource "aws_vpc" "default" {
     cidr_block = "${var.vpc_cidr}"
-    enable_dns_hostnames = true
+    instance_tenancy = "default"
+    enable_dns_support = "true"
+    enable_dns_hostnames = "true"
+    enable_classiclink = "false"
     tags {
-        Name = "caas-aws-vpc"
+        Name = "main"
     }
 }
 
@@ -12,21 +17,34 @@ resource "aws_internet_gateway" "default" {
     vpc_id = "${aws_vpc.default.id}"
 }
 
-/*
-  Public Subnet
-*/
-resource "aws_subnet" "us-east-1a-public" {
+/*********************
+  Public Subnet and IG
+*********************/
+resource "aws_subnet" "public-subnet1" {
     vpc_id = "${aws_vpc.default.id}"
 
-    cidr_block = "${var.public_subnet_cidr}"
-    availability_zone = "us-east-1a"
+    cidr_block = "${var.public_subnet_cidr1}"
+    availability_zone = "eu-west-1a"
+    map_public_ip_on_launch = "true"
 
     tags {
-        Name = "Public Subnet"
+        Name = "Public Subnet 1"
     }
 }
 
-resource "aws_route_table" "us-east-1a-public" {
+resource "aws_subnet" "public-subnet2" {
+    vpc_id = "${aws_vpc.default.id}"
+
+    cidr_block = "${var.public_subnet_cidr2}"
+    availability_zone = "eu-west-1b"
+    map_public_ip_on_launch = "true"
+
+    tags {
+        Name = "Public Subnet 2"
+    }
+}
+
+resource "aws_route_table" "public-route-table" {
     vpc_id = "${aws_vpc.default.id}"
 
     route {
@@ -35,134 +53,104 @@ resource "aws_route_table" "us-east-1a-public" {
     }
 
     tags {
-        Name = "Public Subnet"
+        Name = "Public Route Table"
     }
 }
 
-resource "aws_route_table_association" "us-east-1a-public" {
-    subnet_id = "${aws_subnet.us-east-1a-public.id}"
-    route_table_id = "${aws_route_table.us-east-1a-public.id}"
+resource "aws_route_table_association" "public-route-table-assoc1" {
+    subnet_id = "${aws_subnet.public-subnet1.id}"
+    route_table_id = "${aws_route_table.public-route-table.id}"
 }
 
-/*
+resource "aws_route_table_association" "public-route-table-assoc2" {
+    subnet_id = "${aws_subnet.public-subnet2.id}"
+    route_table_id = "${aws_route_table.public-route-table.id}"
+}
+
+/*********************
   Private Subnet
-*/
-resource "aws_subnet" "us-east-1a-private" {
+*********************/
+resource "aws_subnet" "private-subnet1" {
     vpc_id = "${aws_vpc.default.id}"
 
-    cidr_block = "${var.private_subnet_cidr}"
-    availability_zone = "us-east-1a"
+    cidr_block = "${var.private_subnet_cidr1}"
+    availability_zone = "eu-west-1a"
+    map_public_ip_on_launch = "false"
 
     tags {
-        Name = "Private Subnet"
+        Name = "Private Subnet 1"
     }
 }
 
-resource "aws_eip" "nat" {
+resource "aws_subnet" "private-subnet2" {
+    vpc_id = "${aws_vpc.default.id}"
+
+    cidr_block = "${var.private_subnet_cidr2}"
+    availability_zone = "eu-west-1b"
+    map_public_ip_on_launch = "false"
+
+    tags {
+        Name = "Private Subnet 2"
+    }
+}
+
+/**********************************************
+  NAT GAteway association with private subnets
+*********************************************/
+resource "aws_eip" "nat1" {
     vpc = true
 }
 
-resource "aws_nat_gateway" "nat" {
-  allocation_id = "${aws_eip.nat.id}"
-  subnet_id = "${aws_subnet.us-east-1a-public.id}"
+resource "aws_eip" "nat2" {
+    vpc = true
+}
+
+resource "aws_nat_gateway" "nat-gateway1" {
+  allocation_id = "${aws_eip.nat1.id}"
+  subnet_id = "${aws_subnet.public-subnet1.id}"
 
   depends_on = ["aws_internet_gateway.default"]
 }
 
-resource "aws_route_table" "us-east-1a-private" {
+resource "aws_nat_gateway" "nat-gateway2" {
+  allocation_id = "${aws_eip.nat2.id}"
+  subnet_id = "${aws_subnet.public-subnet2.id}"
+
+  depends_on = ["aws_internet_gateway.default"]
+}
+
+resource "aws_route_table" "private-subnet1" {
     vpc_id = "${aws_vpc.default.id}"
 
     route {
         cidr_block = "0.0.0.0/0"
-        nat_gateway_id = "${aws_nat_gateway.nat.id}"
+        nat_gateway_id = "${aws_nat_gateway.nat-gateway1.id}"
     }
 
     tags {
-        Name = "Private Subnet"
+        Name = "NAT Gateway 1"
     }
 }
 
-resource "aws_route_table_association" "us-east-1a-private" {
-    subnet_id = "${aws_subnet.us-east-1a-private.id}"
-    route_table_id = "${aws_route_table.us-east-1a-private.id}"
-}
-
-/*********************
-  BASTION Instance
-*********************/
-resource "aws_security_group" "bastion-sg" {
-    name = "caas_bastion"
-    description = "Allow incoming traffic through SSH"
-
-    ingress {
-        from_port = 22
-        to_port = 22
-        protocol = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
-
-    egress {
-      from_port = 80
-      to_port = 80
-      protocol = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-    }
-
-    egress {
-      from_port = 22
-      to_port = 22
-      protocol = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-    }
-
+resource "aws_route_table" "private-subnet2" {
     vpc_id = "${aws_vpc.default.id}"
 
+    route {
+        cidr_block = "0.0.0.0/0"
+        nat_gateway_id = "${aws_nat_gateway.nat-gateway2.id}"
+    }
+
     tags {
-        Name = "BASTION_SG"
+        Name = "NAT Gateway 2"
     }
 }
 
-resource "aws_instance" "bastion" {
-    ami = "ami-1853ac65"
-    availability_zone = "us-east-1a"
-    instance_type = "t2.micro"
-    key_name = "${var.aws_key_name}"
-    vpc_security_group_ids = ["${aws_security_group.bastion-sg.id}"]
-    subnet_id = "${aws_subnet.us-east-1a-public.id}"
-    associate_public_ip_address = true
-    source_dest_check = false
-
-    tags {
-        Name = "CAAS BASTION"
-    }
+resource "aws_route_table_association" "private-subnet1" {
+    subnet_id = "${aws_subnet.private-subnet1.id}"
+    route_table_id = "${aws_route_table.private-subnet1.id}"
 }
 
-resource "aws_eip" "bastion-ip" {
-    instance = "${aws_instance.bastion.id}"
-    vpc = true
-}
-
-resource "aws_security_group" "caas-sg" {
-    name = "caas_instances"
-    description = "Allow incoming traffic from public subnet through SSH"
-
-    ingress {
-        from_port = 22
-        to_port = 22
-        protocol = "tcp"
-        cidr_blocks = ["10.0.0.0/24"]
-    }
-
-    egress {
-      from_port = 80
-      to_port = 80
-      protocol = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-    }
-
-    vpc_id = "${aws_vpc.default.id}"
-
-    tags {
-        Name = "CAAS_SG"
-    }
+resource "aws_route_table_association" "private-subnet2" {
+    subnet_id = "${aws_subnet.private-subnet2.id}"
+    route_table_id = "${aws_route_table.private-subnet2.id}"
 }
