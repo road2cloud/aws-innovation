@@ -14,60 +14,10 @@ resource "local_file" "private_key_pem" {
   filename   = "lab-keypair.pem"
 }
 
-resource "aws_elb" "elb" {
-  name = "lab-ELB"
-  subnets = ["${var.public_subnet1_id}", "${var.public_subnet2_id}"]
-  security_groups = ["${aws_security_group.elb-securitygroup.id}"]
- listener {
-    instance_port = 80
-    instance_protocol = "http"
-    lb_port = 80
-    lb_protocol = "http"
-  }
-  health_check {
-    healthy_threshold = 2
-    unhealthy_threshold = 2
-    timeout = 3
-    target = "HTTP:80/"
-    interval = 30
-  }
-
-  cross_zone_load_balancing = true
-  connection_draining = true
-  connection_draining_timeout = 400
-  tags {
-    Name = "LAB ELB"
-  }
-}
-
-/**********************
-  Public Security Group
-*********************/
-resource "aws_security_group" "elb-securitygroup" {
-  vpc_id = "${var.vpc_id}"
-  name = "elb"
-  description = "security group for load balancer"
-  egress {
-      from_port = 0
-      to_port = 0
-      protocol = "-1"
-      cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-      from_port = 80
-      to_port = 80
-      protocol = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-  }
-  tags {
-    Name = "elb"
-  }
-}
 
 resource "aws_security_group" "public-sg" {
   vpc_id = "${var.vpc_id}"
-  name = "jira-instance-sg"
+  name = "instance-sg"
   description = "security group for ec2 instance"
   egress {
       from_port = 0
@@ -87,17 +37,17 @@ resource "aws_security_group" "public-sg" {
       from_port = 80
       to_port = 80
       protocol = "tcp"
-      security_groups = ["${aws_security_group.elb-securitygroup.id}"]
+      security_groups = ["${var.alb-securitygroup}"]
   }
 
   tags {
-    Name = "JIRA Instance SG"
+    Name = "Instance SG"
   }
 }
 
 resource "aws_launch_configuration" "launchconfig" {
   name_prefix          = "launchconfig"
-  image_id             = "ami-0bdb1d6c15a40392c"
+  image_id             = "${var.AMI_ID}"
   instance_type        = "t2.micro"
   key_name             = "lab-keypair"
   security_groups      = ["${aws_security_group.public-sg.id}"]
@@ -115,7 +65,8 @@ resource "aws_autoscaling_group" "autoscaling" {
   max_size             = 2
   health_check_grace_period = 300
   health_check_type = "ELB"
-  load_balancers = ["${aws_elb.elb.name}"]
+  #load_balancers = ["${var.alb_name}"]
+  target_group_arns = ["${var.target_group_arn}"]
   force_delete = true
 
   tag {
@@ -187,7 +138,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu-alarm-scaledown" {
 resource "aws_sns_topic" "sns" {
   name         = "sg-sns"
   display_name = "SNS topic"
-} # email subscription is currently unsupported in terraform and can be done using the AWS Web Console
+}
 
 resource "aws_autoscaling_notification" "notify" {
   group_names = ["${aws_autoscaling_group.autoscaling.name}"]

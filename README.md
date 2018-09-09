@@ -13,3 +13,7 @@ TEST :
 ssh PROJECT-user@BASTION_IP  
 ssh -i PROJECT-keypair.pem ec2-user@EC2_IP   
 curl -4 http://wttr.in/paris  
+
+Run terraform output config-map-aws-auth and save the configuration into a file, e.g.   config-map-aws-auth.yaml  
+Run kubectl apply -f config-map-aws-auth.yaml  
+You can verify the worker nodes are joining the cluster via: kubectl get nodes --watch  

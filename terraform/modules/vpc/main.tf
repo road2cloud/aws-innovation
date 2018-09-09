@@ -24,7 +24,7 @@ resource "aws_subnet" "public-subnet1" {
     vpc_id = "${aws_vpc.default.id}"
 
     cidr_block = "${var.public_subnet_cidr1}"
-    availability_zone = "eu-west-1a"
+    availability_zone = "us-east-1a"
     map_public_ip_on_launch = "true"
 
     tags {
@@ -36,7 +36,7 @@ resource "aws_subnet" "public-subnet2" {
     vpc_id = "${aws_vpc.default.id}"
 
     cidr_block = "${var.public_subnet_cidr2}"
-    availability_zone = "eu-west-1b"
+    availability_zone = "us-east-1b"
     map_public_ip_on_launch = "true"
 
     tags {
@@ -74,7 +74,7 @@ resource "aws_subnet" "private-subnet1" {
     vpc_id = "${aws_vpc.default.id}"
 
     cidr_block = "${var.private_subnet_cidr1}"
-    availability_zone = "eu-west-1a"
+    availability_zone = "us-east-1a"
     map_public_ip_on_launch = "false"
 
     tags {
@@ -86,7 +86,7 @@ resource "aws_subnet" "private-subnet2" {
     vpc_id = "${aws_vpc.default.id}"
 
     cidr_block = "${var.private_subnet_cidr2}"
-    availability_zone = "eu-west-1b"
+    availability_zone = "us-east-1b"
     map_public_ip_on_launch = "false"
 
     tags {

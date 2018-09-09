@@ -4,11 +4,13 @@
 *.tfvars
 
 # Module directory
-.terraform/
+*/**/.terraform/
+terraform/terraform
 
 secrets.tfvars
 *.pem
 
 *.retry
 inventory
-terraform
+packer/packer
+build.log

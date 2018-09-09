@@ -1,0 +1,41 @@
+
+  {
+      "variables": {
+        "name": "ami_nginx",
+        "source_ami": "ami-04681a1dbd79675a5",
+        "access_key":"",
+        "secret_key":"",
+        "region":"us-east-1"
+      },
+      "builders": [{
+        "type": "amazon-ebs",
+        "access_key": "{{user `access_key`}}",
+        "secret_key":"{{user `secret_key`}}",
+        "ami_name": "{{user `name`}}",
+        "region": "{{user `region`}}",
+        "source_ami": "{{user `source_ami`}}",
+        "instance_type": "t2.micro",
+        "communicator": "ssh",
+        "ssh_username": "ec2-user",
+        "run_tags":{"Name":"packer-image"}
+      }],
+      "provisioners": [
+          {
+            "type": "shell",
+            "inline": "sudo amazon-linux-extras install nginx1.12 -y"
+          },
+          {
+            "type": "shell",
+            "inline": ["sudo systemctl start nginx", "sudo systemctl enable nginx"]
+          },
+          {
+            "destination": "/var/tmp/sample.html",
+            "source": "data/sample.html",
+            "type": "file"
+          },
+          {
+            "type": "shell",
+            "inline": "sudo cp /var/tmp/sample.html /usr/share/nginx/html/sample.html"
+          }
+        ]
+    }
