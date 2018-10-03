@@ -1,3 +1,5 @@
+data "aws_elb_service_account" "main" {}
+
 resource "aws_lb" "alb" {
   name = "lab-ELB"
   load_balancer_type = "application"
@@ -11,17 +13,17 @@ resource "aws_lb" "alb" {
     Name = "LAB ALB"
   }
   # Access Denied for bucket
-  /*access_logs {
+  access_logs {
     bucket  = "${aws_s3_bucket.lb_logs.id}"
     prefix  = "arc-lb"
     enabled = true
-  }*/
+  }
 }
 
 resource "aws_s3_bucket" "lb_logs" {
-  bucket = "arclabbucket149"
-  acl    = "public-read"
-
+  bucket = "arclabbucket151"
+  #acl    = "public-read"
+  force_destroy = "true"
   tags {
     Name        = "My bucket"
     Environment = "Dev"
@@ -34,6 +36,31 @@ resource "aws_s3_bucket" "lb_logs" {
       }
     }
   }
+}
+
+resource "aws_s3_bucket_policy" "allow_lb_logs" {
+  bucket = "${aws_s3_bucket.lb_logs.id}"
+  policy =<<-EOF
+    {
+      "Id": "Policy1536568708825",
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "Stmt1536568701403",
+          "Action": [
+            "s3:PutObject"
+          ],
+          "Effect": "Allow",
+          "Resource": "arn:aws:s3:::${aws_s3_bucket.lb_logs.id}/arc-lb/AWSLogs/556658104288/*",
+          "Principal": {
+            "AWS": [
+              "${data.aws_elb_service_account.main.arn}"
+            ]
+          }
+        }
+      ]
+    }
+    EOF
 }
 
 #Listeners are assigned a specific port to keep an ear out for incoming traffic

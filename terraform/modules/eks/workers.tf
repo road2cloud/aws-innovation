@@ -50,19 +50,11 @@ resource "aws_security_group" "arc-node" {
   }
 
   ingress {
-    description = "Allow node to communicate with each other"
-    from_port   = 0
-    to_port     = 65535
-    protocol    = "-1"
-    source_security_group_id = "${aws_security_group.arc-node.id}"
-  }
-
-  ingress {
     description = "Allow worker Kubelets and pods to receive communication from the cluster control plane"
     from_port   = 1025
     to_port     = 65535
     protocol    = "tcp"
-    source_security_group_id = "${aws_security_group.arc-cluster.id}"
+    security_groups = ["${aws_security_group.arc-cluster.id}"]
   }
 
   tags = "${
@@ -72,6 +64,17 @@ resource "aws_security_group" "arc-node" {
     )
   }"
 }
+
+/*resource "aws_security_group_rule" "arc-node-ingress-self" {
+  depends_on               = ["aws_security_group.arc-node"]
+  description              = "Allow node to communicate with each other"
+  from_port                = 0
+  protocol                 = "-1"
+  security_group_id        = "${aws_security_group.arc-node.id}"
+  source_security_group_id = "${aws_security_group.arc-node.id}"
+  to_port                  = 65535
+  type                     = "ingress"
+}*/
 
 resource "aws_security_group_rule" "arc-cluster-ingress-node-https" {
   description              = "Allow pods to communicate with the cluster API Server"
@@ -139,7 +142,7 @@ resource "aws_autoscaling_group" "arc" {
   max_size             = 1
   min_size             = 1
   name                 = "terraform-eks-arc"
-  vpc_zone_identifier  = [["${var.public_subnet1_id}", "${var.public_subnet2_id}"]
+  vpc_zone_identifier  = ["${var.public_subnet1_id}", "${var.public_subnet2_id}"]
 
   tag {
     key                 = "Name"

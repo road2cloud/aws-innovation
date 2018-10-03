@@ -3,11 +3,21 @@ variable "region" {
 }
 variable "access_key" {}
 variable "secret_key" {}
+variable "reference" {}
 
 provider "aws" {
   access_key = "${var.access_key}"
   secret_key = "${var.secret_key}"
   region = "${var.region}"
+}
+
+data "terraform_remote_state" "network" {
+  backend = "s3"
+  config {
+    bucket = "terraform-state-useast149"
+    key = "network/terraform.tfstate"
+    region = "us-east-1"
+  }
 }
 
 module "lab_vpc" {

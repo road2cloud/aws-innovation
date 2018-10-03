@@ -3,8 +3,8 @@
       "variables": {
         "name": "ami_nginx",
         "source_ami": "ami-04681a1dbd79675a5",
-        "access_key":"",
-        "secret_key":"",
+        "access_key":"XX",
+        "secret_key":"XX",
         "region":"us-east-1"
       },
       "builders": [{

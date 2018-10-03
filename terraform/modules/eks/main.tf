@@ -1,3 +1,7 @@
+resource "aws_ecr_repository" "arc" {
+  name = "lab"
+}
+
 resource "aws_iam_role" "arc-cluster" {
   name = "arc-eks-cluster"
 
@@ -43,7 +47,7 @@ resource "aws_security_group" "arc-cluster" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["A.B.C.D/32"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags {

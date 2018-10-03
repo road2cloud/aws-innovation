@@ -1,0 +1,3 @@
+bucket = "terraform-state-useast149"
+key    = "network/terraform.state"
+region = "us-east-1"
